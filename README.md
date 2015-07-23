@@ -3,7 +3,7 @@ Mage Ape
 
 ### What?
 
-Mage Ape is a genaric web interface for testing API calls to Magento stores and sites
+Mage Ape is a generic web interface for testing API calls to Magento stores and sites
 
 ### Todo / Road Map
 
