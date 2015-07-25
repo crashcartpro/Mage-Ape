@@ -23,11 +23,17 @@ if (!empty($_GET)) {
   } else {
     echo "<div class='alert alert-danger'>Bad input</div>";
   }*/
-  if (($response_xml_data = file_get_contents($inputurl))===false){
+
+  /*if (($response_xml_data = file_get_contents($inputurl))===false){
     echo "Error fetching XML\n";
   } else {
     print_r($response_xml_data);
-  }
+  }*/
+  $client = new SoapClient($inputurl);
+  $session = $client->login('theath', 'donttell');
+  print_r($session);
+  $result = $client->magentoInfoEntity($session);
+  print_r($result);
 }
 ?>
   </p>
