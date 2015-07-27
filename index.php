@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html><head>
+<html>
+<head>
   <title>Mage Ape</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-</head><body>
+</head>
+<body>
 <div class="container">
-  <a href="http://taoexmachina.com/mage-ape"><h1>Mage Ape</h1></a>
-  <div class="row"><div class="col-lg-6">
-    <form clase="form-inline" action="">
-      <div class="form-group">
-        <div class="input-group">
-          <div class="input-group-addon">Site:</div>
-          <input type="text" class="form-control" name="website">
-          <span class="input-group-btn">
-            <button type="submit" class="btn btn-primary">Get Info</button>
-          </span>
+  <div class="col-md-6 col-md-offset-1">
+    <a href="http://taoexmachina.com/mage-ape"><h1>Mage Ape</h1></a>
+    <div class="row">
+      <form action="" method="POST">
+        <div class="form-group">
+          <div class="input-group">
+            <div class="input-group-addon">Site:</div>
+            <input type="text" class="form-control" name="website">
+            <span class="input-group-btn">
+              <button type="submit" class="btn btn-primary">Get Info</button>
+            </span>
+          </div>
         </div>
-      </div>
-    </form>
-  </div></div>
-  <div class="row"><div class="bg-info col-lg-6">
-    Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl
-  </div></div><br>
-  <p>
+      </form>
+    </div>
+    <div class="row bg-info">
+      Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl
+    </div>
+    <div class="row">
 <?php
-if (!empty($_GET)) {
-  $inputurl = $_GET['website'];
+if (!empty($_POST)) {
+  $inputurl = $_POST['website'];
   $url = filter_var($inputurl, FILTER_SANITIZE_URL);
   if (strpos($url, "http://") !== 0) {$url = "http://" . $url;}
   $urlparts = parse_url($url);
@@ -32,7 +35,10 @@ if (!empty($_GET)) {
   if (!isset($urlparts["path"])) {$urlparts["path"] = "/index.php/api/v2_soap/";}
   if (!isset($urlparts["query"])) {$urlparts["query"] = "wsdl";}
   echo "<br>";
-  print_r($urlparts); 
+  print_r($urlparts);
+  var_dump($urlparts);
+  #$targeturl = http_build_url($$urlparts);
+  #print_r($targeturl); 
   /*if (($response_xml_data = file_get_contents($inputurl))===false){
     echo "Error fetching XML\n";
   } else {
@@ -45,6 +51,10 @@ if (!empty($_GET)) {
   print_r($result);*/
 }
 ?>
-  </p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <img src="Mage_ape1.png">
+  </div>
 </div>
 </body></html>
