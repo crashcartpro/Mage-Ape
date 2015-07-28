@@ -1,3 +1,14 @@
+<?php
+/*//error handler function
+function customError($errno, $errstr) {
+  echo "<p class='bg-danger'><b>Error:</b> [$errno] $errstr </p>";
+  return;
+}
+
+//set error handler
+set_error_handler("customError");
+*/
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,6 +20,9 @@
   <div class="col-sm-9 col-md-6 col-md-offset-1">
     <a href="http://taoexmachina.com/mage-ape"><h1>Mage Ape</h1></a>
     <div class="row">
+      Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl
+    </div>
+    <div class-"row">
       <form action="" method="POST">
         <div class="form-group">
           <div class="input-group">
@@ -19,7 +33,7 @@
             </span>
           </div>
         </div>
-        <div class="input-group">
+        <!--<div class="input-group">
             <div class="input-group-addon">Username:</div>
             <input type="text" class="form-control" name="user">
             <div class="input-group-addon">Password:</div>
@@ -28,10 +42,7 @@
               <button type="submit" class="btn btn-primary">Run Tests</button>
             </span>
           </div>
-      </form>
-    </div>
-    <div class="row bg-info">
-      Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl
+      </form>-->
     </div>
 <?php
 if (!empty($_POST)) {
@@ -43,13 +54,15 @@ if (!empty($_POST)) {
     $urlparts = parse_url($url);
     $url = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
   }
-  echo "<p>{$url}</p>";
-  if (!$client = new SoapClient($url)) {
-    echo '<div class="row bg-warn">Unable to start SOAP client. possibly no wsdl found</div>';
-  } else {
-    echo '<div class="row bg-success">Started SOAP client.</div>';
+  echo '<div class="alert alert-info" role="alert">Using: ' . $url . "</div>";
+  try {
+    $client = new SoapClient($url);
+  echo '<div class="alert alert-success" role="alert">Started SOAP client.</div>';
   }
-  
+
+catch(Exception $e) {
+ echo '<div class="alert alert-danger" role="alert">' . $e->getMessage() . '</div>';
+}
 }
 ?>
   </div>
