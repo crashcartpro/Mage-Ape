@@ -1,13 +1,19 @@
 <?php
-/*//error handler function
-function customError($errno, $errstr) {
-  echo "<p class='bg-danger'><b>Error:</b> [$errno] $errstr </p>";
-  return;
-}
+#########################
+#  Mage-Ape
+#    v0.6 
+# by CrashCart
+#
+# Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
+#
 
-//set error handler
-set_error_handler("customError");
-*/
+ob_implicit_flush(1);
+
+#defaults for testing
+$inputurl = "www.theath.simple-helix.net";
+$user = "theath";
+$pass = "donttell";
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -17,8 +23,11 @@ set_error_handler("customError");
 </head>
 <body>
 <div class="container">
+  <div class="pull-right">
+    <img src="Mage_ape1.png">
+  </div>
   <div class="col-sm-9 col-md-6 col-md-offset-1">
-    <a href="http://taoexmachina.com/mage-ape"><h1>Mage Ape</h1></a>
+    <h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small>  Magento API test</small></h1>
     <div class="row">
       Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl
     </div>
@@ -27,27 +36,36 @@ set_error_handler("customError");
         <div class="form-group">
           <div class="input-group">
             <div class="input-group-addon">Site:</div>
-            <input type="text" class="form-control" name="website">
+            <input type="text" class="form-control" name="website" value="www.theath.simple-helix.net">
             <span class="input-group-btn">
               <button type="submit" class="btn btn-primary">Get Info</button>
             </span>
           </div>
         </div>
-        <!--<div class="input-group">
+        <div class="input-group">
             <div class="input-group-addon">Username:</div>
-            <input type="text" class="form-control" name="user">
+            <input type="text" class="form-control" name="user" value="theath">
             <div class="input-group-addon">Password:</div>
-            <input type="text" class="form-control" name="pass">
-            <span class="input-group-btn">
+            <input type="text" class="form-control" name="pass" value="donttell">
+            <!--<span class="input-group-btn">
               <button type="submit" class="btn btn-primary">Run Tests</button>
-            </span>
+            </span>-->
           </div>
-      </form>-->
+      </form>
     </div>
 <?php
 if (!empty($_POST)) {
+  #loading gif here and visable
+  ob_flush();
+
+  # Fetch POST variables
   $inputurl = $_POST['website'];
-#  $inputurl = "banana.com";
+  $user = $_POST['user'];
+  $pass = $_POST['pass'];
+  
+  # Filter URL. 
+  # If http is missing, add http, 
+  # If wsdl isn't declared, add wsdl and path
   $url = filter_var($inputurl, FILTER_SANITIZE_URL);
   if (strpos($url, "http://") !== 0) {$url = "http://" . $url;}
   if (strpos($url, "wsdl") !== (strlen($url)-4)) {
@@ -55,19 +73,33 @@ if (!empty($_POST)) {
     $url = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
   }
   echo '<div class="alert alert-info" role="alert">Using: ' . $url . "</div>";
+  ob_flush();
+
+  # catch errors
   try {
+    # setup SOAP client connection and login
     $client = new SoapClient($url);
-  echo '<div class="alert alert-success" role="alert">Started SOAP client.</div>';
+    $session = $client->login($user, $pass);
+    echo '<div class="alert alert-success" role="alert">Login successful. [' . $session . ']</div>';
+    ob_flush();
+
+    #try a few useful commands to gather data and show connection is working.
+    $result = $client->storeList($session);
+    echo '<div class="alert alert-info" role="alert">';
+    #print_r($result);
+    foreach ($result as $a) {
+      echo "Store ID: " . $a->store_id . " Name: " . $a->code . "<br>";
+    } 
+    echo '</div>';
   }
 
+#Error handling
 catch(Exception $e) {
  echo '<div class="alert alert-danger" role="alert">' . $e->getMessage() . '</div>';
 }
 }
+#I was going to ob_flush() here one last time but this is so close to the end of the file anyway.
 ?>
-  </div>
-  <div class="col-md-3">
-    <img src="Mage_ape1.png">
   </div>
 </div>
 </body></html>
