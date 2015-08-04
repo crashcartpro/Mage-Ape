@@ -26,7 +26,8 @@ if (!empty($_POST)) {
 <html>
 <head>
   <title>Mage Ape</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="includes/bootstrap.min.css">
+  <script src"includes/bootstrap.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -91,6 +92,17 @@ if (!empty($_POST)) {
     ob_flush();
 
     #try a few useful commands to gather data and show connection is working.
+    $result = $client->magentoInfo($session);
+    echo '<div class="alert alert-info" role="alert">';
+    echo $result->magento_edition . " Magento version " . $result->magento_version;
+    echo '</div>';
+
+    $result = $client->resources($session);
+    echo '<div class="alert alert-info" role="alert"><pre>';
+    var_dump($result);
+    echo '</pre></div>';
+
+
     $result = $client->storeList($session);
     echo '<div class="alert alert-info" role="alert">';
     #print_r($result);
