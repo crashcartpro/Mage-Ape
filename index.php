@@ -41,7 +41,7 @@ if (!empty($_POST)) {
 			<form action="" method="POST">
 				<div class="form-group">
 					<div class="input-group">
-						<div class="input-group-addon">Site:</div>
+						<div class="input-group-addon">Site or wsdl:</div>
 						<input type="text" class="form-control" name="website" value="<?php echo $inputurl; ?>">
 						<span class="input-group-btn">
 							<button type="submit" class="btn btn-primary">Get Info</button>
@@ -72,18 +72,25 @@ if (!empty($_POST)) {
 	if (strpos($url, "wsdl") !== (strlen($url)-4)) {
 		$url = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
 	}
-	# $headers = @get_headers($url);
-	# echo "<div class='alert alert-warning' role='alert'>". var_dump($headers). "</div>";
 	echo '<div class="alert alert-info" role="alert">Started tests using:<br/>' . $url . "</div>";
+/*	$h = get_headers($url);
+	echo '<div class="alert alert-info" role="alert"><pre>';
+	var_dump($h);
+	echo "</pre></div>";
 	ob_flush();
-   
+*/ 
 
 	# catch errors
 	try {
 		# setup SOAP client connection and login
 		$client = new SoapClient($url);
-		$session = $client->login($user, $pass);
-		echo '<div class="alert alert-success" role="alert">Login successful. [' . $session . ']</div>';
+		if (empty($user) || empty($pass)) {
+			$session = $client->startSession();
+			echo '<div class="alert alert-info" role="alert">Started session without auth. [' . $session . ']</div>';
+		} else {
+			$session = $client->login($user, $pass);
+			echo '<div class="alert alert-success" role="alert">Login successful. [' . $session . ']</div>';
+		}
 		ob_flush();
 
 		#try a few useful commands to gather data and show connection is working.
@@ -94,7 +101,6 @@ if (!empty($_POST)) {
 
 		$result = $client->storeList($session);
 		echo '<div class="alert alert-info" role="alert">';
-		#print_r($result);
 		foreach ($result as $a) {
 			echo "Store ID: " . $a->store_id . " Name: " . $a->code . "<br>";
 		} 
@@ -104,12 +110,31 @@ if (!empty($_POST)) {
 		echo '<div class="alert alert-info" role="alert"><pre>';
 		var_dump($result);
 		echo '</pre></div>';
+
+#
+# Calls that only require session id
+#
+# resources
+# globalFaults
+# resourceName
+# storeList
+# magentoInfo
+# directoryCountryList
+# customerGroupList
+# catalogProductAttributeSetList
+# catalogProductAttributeTypes
+# catalogProductTypeList
+# catalogProductLinkTypes
+# catalogProductCustomOptionTypes
+# catalogCategoryAttributeList
+#
 	}
 
 	#Error handling
 	catch(Exception $e) {
 		echo '<div class="alert alert-danger" role="alert">' . $e->getMessage() . '</div>';
 	}
+
 }
 #I was going to ob_flush() here one last time but this is so close to the end of the file anyway.
 ?>
