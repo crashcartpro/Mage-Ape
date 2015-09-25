@@ -73,12 +73,17 @@ if (!empty($_POST)) {
 		$url = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
 	}
 	echo '<div class="alert alert-info" role="alert">Started tests using:<br/>' . $url . "</div>";
-/*	$h = get_headers($url);
-	echo '<div class="alert alert-info" role="alert"><pre>';
-	var_dump($h);
-	echo "</pre></div>";
 	ob_flush();
-*/ 
+	
+	$headers = get_headers($url);
+	echo '<div class="alert alert-warning" role="alert">';
+	foreach ($headers as $h) {
+		if (strpos(strtolower($h), "http/") !== false) {
+			echo $h."<br>";
+		}
+	}
+	echo "</div>";
+	ob_flush(); 
 
 	# catch errors
 	try {
@@ -86,10 +91,12 @@ if (!empty($_POST)) {
 		$client = new SoapClient($url);
 		if (empty($user) || empty($pass)) {
 			$session = $client->startSession();
-			echo '<div class="alert alert-info" role="alert">Started session without auth. [' . $session . ']</div>';
+			echo '<div class="alert alert-info" role="alert">Started session without auth.<br>';
+			echo 'Session ID: ' . $session . '</div>';
 		} else {
 			$session = $client->login($user, $pass);
-			echo '<div class="alert alert-success" role="alert">Login successful. [' . $session . ']</div>';
+			echo '<div class="alert alert-success" role="alert">Login successful.<br>';
+			echo 'Session ID: ' . $session . '</div>';
 		}
 		ob_flush();
 
@@ -98,6 +105,7 @@ if (!empty($_POST)) {
 		echo '<div class="alert alert-info" role="alert">';
 		echo $result->magento_edition . " Magento version " . $result->magento_version;
 		echo '</div>';
+		ob_flush();
 
 		$result = $client->storeList($session);
 		echo '<div class="alert alert-info" role="alert">';
@@ -105,11 +113,13 @@ if (!empty($_POST)) {
 			echo "Store ID: " . $a->store_id . " Name: " . $a->code . "<br>";
 		} 
 		echo '</div>';
+		ob_flush();
 
 		$result = $client->resources($session);
 		echo '<div class="alert alert-info" role="alert"><pre>';
 		var_dump($result);
 		echo '</pre></div>';
+		ob_flush();
 
 #
 # Calls that only require session id
