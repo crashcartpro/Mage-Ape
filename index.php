@@ -45,7 +45,7 @@ if (!empty($_POST)) {
 			<form action="" method="POST">
 				<div class="form-group">
 					<div class="input-group">
-						<div class="input-group-addon">Site or wsdl:</div>
+						<div class="input-group-addon">URL:</div>
 						<input type="text" class="form-control" name="website" value="<?php echo $inputurl; ?>">
 						<span class="input-group-btn">
 							<button type="submit" class="btn btn-primary">Get Info</button>
@@ -80,12 +80,21 @@ if (!empty($_POST)) {
 	ob_flush();
 
 ## check link response
-	$headers = get_headers($url);
-	echo '<div class="alert alert-warning" role="alert">';
-	foreach ($headers as $h) {
-		if (strpos(strtolower($h), "http/") !== false) {
-			echo $h."<br>";
-		}
+	$headers = get_headers($url,1);
+	if (strpos($headers[0], "200")){
+		echo '<div class="alert alert-success" role="alert">';
+		echo "URL is ok.";
+	} elseif (strpos($headers[0], "301") or strpos($headers[0], "302")){
+		echo '<div class="alert alert-warning" role="alert">';
+		echo "URL redirects to: " . $headers["Location"] . "<br>";
+		$url = $headers["Location"] . "index.php/api/v2_soap/?wsdl";
+		echo "Continuing with: " . $url;
+	} elseif (strpos($headers[0], "404")){
+		echo '<div class="alert alert-danger" role="alert">';
+		echo "URL path does not exist.";
+	} else {
+		echo '<div class="alert alert-danger" role="alert">';
+		echo "URL returns a bad request.<br>" . $headers[0];
 	}
 	echo "</div>";
 	ob_flush(); 
