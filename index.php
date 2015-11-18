@@ -10,13 +10,13 @@
 ob_implicit_flush(1);
 
 if (!empty($_POST)) {
-  # Fetch POST variables
+  ## Fetch POST variables
   $inputurl = $_POST['website'];
   $user = $_POST['user'];
   $pass = $_POST['pass'];
-  #$apimehod = $_POST['apimethod'];
+#  $apimehod = $_POST['apimethod'];	#for future use with API method switching
 } else {  
-  #defaults for testing
+  ## Default veribles for testing
   $inputurl = "www.theath.simple-helix.net";
   $user = "theath";
   $pass = "donttell";
@@ -36,6 +36,10 @@ if (!empty($_POST)) {
 	</div>
 	<div class="col-sm-11 col-md-6 col-md-offset-2">
 		<h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small>  Magento API test</small></h1>
+		<p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
+		<p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
+		<p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
+		<p>If you specify the user and password, Mage Ape will start a session and try to pull some data from the store. If any step fails, Mage Ape dutifully prints the error message for you you see.</p>
 		<div class="row">Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl</div>
 		<div class-"row">
 			<form action="" method="POST">
@@ -60,10 +64,10 @@ if (!empty($_POST)) {
 
 <?php
 if (!empty($_POST)) {
-	#loading gif here and visable
+	## loading gif here? and visable
 	ob_flush();
 
-	# Filter URL. 
+## Filter URL. 
 	# If http is missing, add http, 
 	# If wsdl isn't declared, add wsdl and path
 	$url = filter_var($inputurl, FILTER_SANITIZE_URL);
@@ -74,7 +78,8 @@ if (!empty($_POST)) {
 	}
 	echo '<div class="alert alert-info" role="alert">Started tests using:<br/>' . $url . "</div>";
 	ob_flush();
-	
+
+## check link response
 	$headers = get_headers($url);
 	echo '<div class="alert alert-warning" role="alert">';
 	foreach ($headers as $h) {
@@ -84,6 +89,10 @@ if (!empty($_POST)) {
 	}
 	echo "</div>";
 	ob_flush(); 
+
+## check wsdl data
+	
+	
 
 	# catch errors
 	try {
@@ -116,9 +125,11 @@ if (!empty($_POST)) {
 		ob_flush();
 
 		$result = $client->resources($session);
-		echo '<div class="alert alert-info" role="alert"><pre>';
-		var_dump($result);
-		echo '</pre></div>';
+		echo '<div class="alert alert-info" role="alert">';
+		foreach ($result as $a) {
+			echo $a->title . "<br>";
+		}
+		echo '</div>';
 		ob_flush();
 
 #
