@@ -1,13 +1,37 @@
 <?php
 #########################
 #  Mage-Ape
-#    v0.6 
+#    v0.8 
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
 #
 
+#set environment variables
+ini_set("default_socket_timeout", 6000);
 ob_implicit_flush(1);
+
+function correctURL($inputurl) {
+	# If http is missing, add http, 
+	# If wsdl isn't declared, add wsdl and path
+	$workingurl = filter_var($inputurl, FILTER_SANITIZE_URL);
+	if (strpos($workingurl, "http") !== 0) {$workingurl = "http://" . $workingurl;}
+	$urlparts = parse_url($workingurl);
+	if (strpos($workingurl, "wsdl") !== (strlen($workingurl)-4)) {
+		$workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
+	}
+	return $workingurl;
+}
+
+function postMessage($type, $title, $message) {
+	global $starttime;
+	$timestamp = time() - $starttime;
+	echo '<div class="alert '.$type.'" role="alert">';
+	echo '<div style="float:right">'.$timestamp.' s</div>';
+	echo '<h4>'.$title.'</h4>';
+	if (!empty($message)) {echo $message;}
+	echo "</div>\r\n";
+}
 
 if (!empty($_POST)) {
   ## Fetch POST variables
@@ -34,7 +58,7 @@ if (!empty($_POST)) {
 	<div class="pull-right">
 		<img src="Mage_ape1.png">
 	</div>
-	<div class="col-sm-11 col-md-6 col-md-offset-2">
+	<div class="col-sx-12 col-sm-6 col-md-6 col-md-offset-2">
 		<h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small>  Magento API test</small></h1>
 		<p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
 		<p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
@@ -63,110 +87,72 @@ if (!empty($_POST)) {
 		<div class-"row">
 
 <?php
+
+
 if (!empty($_POST)) {
 	## loading gif here? and visable
 	ob_flush();
-
+	$starttime = time();
 ## Filter URL. 
-	# If http is missing, add http, 
-	# If wsdl isn't declared, add wsdl and path
-	$url = filter_var($inputurl, FILTER_SANITIZE_URL);
-	if (strpos($url, "http://") !== 0) {$url = "http://" . $url;}
-	$urlparts = parse_url($url);
-	if (strpos($url, "wsdl") !== (strlen($url)-4)) {
-		$url = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
-	}
-	echo '<div class="alert alert-info" role="alert">Started tests using:<br/>' . $url . "</div>";
+	$url = correctURL($inputurl);
+	postMessage("alert-info", "Started test using:", $url);
 	ob_flush();
 
 ## check link response
 	$headers = get_headers($url,1);
 	if (strpos($headers[0], "200")){
-		echo '<div class="alert alert-success" role="alert">';
-		echo "URL is ok.";
+		postMessage("alert-success", "URL is ok");
 	} elseif (strpos($headers[0], "301") or strpos($headers[0], "302")){
-		echo '<div class="alert alert-warning" role="alert">';
-		echo "URL redirects to: " . $headers["Location"] . "<br>";
-		$url = $headers["Location"] . "index.php/api/v2_soap/?wsdl";
-		echo "Continuing with: " . $url;
+		postMessage("alert-danger", "URL redirects to:", $headers["Location"]);
 	} elseif (strpos($headers[0], "404")){
-		echo '<div class="alert alert-danger" role="alert">';
-		echo "URL path does not exist.";
+		postMessage("alert-danger", "URL path does not exist");
 	} else {
-		echo '<div class="alert alert-danger" role="alert">';
-		echo "URL returns a bad request.<br>" . $headers[0];
+		postMessage("alert-danger", "URL returns a bad request");
 	}
-	echo "</div>";
 	ob_flush(); 
-
-## check wsdl data
-	
-	
 
 	# catch errors
 	try {
 		# setup SOAP client connection and login
-		$client = new SoapClient($url);
+		$options = array('exceptions'=>true, 'trace'=>1);
+		$client = new SoapClient($url, $options);
 		if (empty($user) || empty($pass)) {
 			$session = $client->startSession();
-			echo '<div class="alert alert-info" role="alert">Started session without auth.<br>';
-			echo 'Session ID: ' . $session . '</div>';
+			postMessage("alert-info", "Started session without auth", $session);
 		} else {
 			$session = $client->login($user, $pass);
-			echo '<div class="alert alert-success" role="alert">Login successful.<br>';
-			echo 'Session ID: ' . $session . '</div>';
+			postMessage("alert-success", "Login successful", $session);
 		}
 		ob_flush();
 
 		#try a few useful commands to gather data and show connection is working.
 		$result = $client->magentoInfo($session);
-		echo '<div class="alert alert-info" role="alert">';
-		echo $result->magento_edition . " Magento version " . $result->magento_version;
-		echo '</div>';
+		$msg = $result->magento_edition . " edition " . $result->magento_version;
+		postMessage("alert-info", "Version:", $msg);
 		ob_flush();
 
-		$result = $client->storeList($session);
-		echo '<div class="alert alert-info" role="alert">';
-		foreach ($result as $a) {
-			echo "Store ID: " . $a->store_id . " Name: " . $a->code . "<br>";
-		} 
-		echo '</div>';
-		ob_flush();
-
+		$msg = "";
 		$result = $client->resources($session);
-		echo '<div class="alert alert-info" role="alert">';
 		foreach ($result as $a) {
-			echo $a->title . "<br>";
+			$msg = $msg . $a->title . "<br>";
 		}
-		echo '</div>';
+		postMessage("alert-info", "Available resources:", $msg);
 		ob_flush();
 
-#
-# Calls that only require session id
-#
-# resources
-# globalFaults
-# resourceName
-# storeList
-# magentoInfo
-# directoryCountryList
-# customerGroupList
-# catalogProductAttributeSetList
-# catalogProductAttributeTypes
-# catalogProductTypeList
-# catalogProductLinkTypes
-# catalogProductCustomOptionTypes
-# catalogCategoryAttributeList
-#
 	}
 
 	#Error handling
 	catch(Exception $e) {
-		echo '<div class="alert alert-danger" role="alert">' . $e->getMessage() . '</div>';
+		$timestamp = time() - $starttime;
+		echo '<div class="alert alert-danger" role="alert">';
+		echo '<div style="float:right">'.$timestamp.'</div>';
+		echo '<h4>Catch Error</h4>';
+		echo $e->getMessage() . '<hr><pre>';
+		var_dump($e);
+		echo "</pre></div>\r\n";
 	}
 
 }
-#I was going to ob_flush() here one last time but this is so close to the end of the file anyway.
 ?>
 		</div>
 	</div>
