@@ -25,9 +25,9 @@ function correctURL($inputurl) {
 
 function postMessage($type, $title, $message) {
 	global $starttime;
-	$timestamp = time() - $starttime;
+	$timestamp = round(microtime(true)-$starttime,2);
 	echo '<div class="alert '.$type.'" role="alert">';
-	echo '<div style="float:right">'.$timestamp.' s</div>';
+	echo '<div style="float:right">'.$timestamp.'</div>';
 	echo '<h4>'.$title.'</h4>';
 	if (!empty($message)) {echo $message;}
 	echo "</div>\r\n";
@@ -92,7 +92,7 @@ if (!empty($_POST)) {
 if (!empty($_POST)) {
 	## loading gif here? and visable
 	ob_flush();
-	$starttime = time();
+	$starttime = microtime(true);
 ## Filter URL. 
 	$url = correctURL($inputurl);
 	postMessage("alert-info", "Started test using:", $url);
@@ -143,7 +143,7 @@ if (!empty($_POST)) {
 
 	#Error handling
 	catch(Exception $e) {
-		$timestamp = time() - $starttime;
+		$timestamp = round(microtime(true)-$starttime,2);
 		echo '<div class="alert alert-danger" role="alert">';
 		echo '<div style="float:right">'.$timestamp.'</div>';
 		echo '<h4>Catch Error</h4>';
