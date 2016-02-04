@@ -56,7 +56,8 @@ if (!empty($_POST)) {
 <body>
 <div class="container">
 	<div class="pull-right">
-		<img src="Mage_ape1.png">
+		<img src="Mage_ape1.png"><br>
+
 	</div>
 	<div class="col-sx-12 col-sm-6 col-md-6 col-md-offset-2">
 		<h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small>  Magento API test</small></h1>
@@ -91,6 +92,7 @@ if (!empty($_POST)) {
 
 if (!empty($_POST)) {
 	## loading gif here? and visable
+	echo '<img id="loadingGif" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
 	ob_flush();
 	$starttime = microtime(true);
 ## Filter URL. 
@@ -157,5 +159,10 @@ if (!empty($_POST)) {
 		</div>
 	</div>
 </div>
+
+<script>
+document.getElementById('loadingGif').style.display = 'none';
+</script>
+
 </body></html>
 

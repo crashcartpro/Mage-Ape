@@ -11,8 +11,8 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 
 ### Dependencies
 
-* Bootstrap css and js
-* php-soap
+* PHP version 5.2 or greater
+* php-soap module
 
 
 ### Todo / Road Map
@@ -26,6 +26,7 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 * ~~trap and report errors for troubleshooting~~
 * ~~have the form retain previous values after submiting~~
 * ~~timestamp messages~~
+* ~~Loading gif~~
 * select an available SOAP method?
 * keep a more detailed log of calls and responces, and print it out after all tests complete.
 * optional switch for Magento SOAP v1 or SOAP v2
