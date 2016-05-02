@@ -29,5 +29,5 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 * ~~Loading gif~~
 * select an available SOAP method?
 * keep a more detailed log of calls and responces, and print it out after all tests complete.
-* optional switch for Magento SOAP v1 or SOAP v2
+* ~~optional switch for Magento SOAP v1 or SOAP v2~~
 * more optional switches for XML-RPC?

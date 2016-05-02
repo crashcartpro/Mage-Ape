@@ -1,7 +1,7 @@
 <?php
 #########################
 #  Mage-Ape
-#    v0.8.1 
+#    v0.9 
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
@@ -14,11 +14,16 @@ ob_implicit_flush(1);
 function correctURL($inputurl) {
 	# If http is missing, add http, 
 	# If wsdl isn't declared, add wsdl and path
+	global $apimethod;
 	$workingurl = filter_var($inputurl, FILTER_SANITIZE_URL);
 	if (strpos($workingurl, "http") !== 0) {$workingurl = "http://" . $workingurl;}
 	$urlparts = parse_url($workingurl);
 	if (strpos($workingurl, "wsdl") !== (strlen($workingurl)-4)) {
-		$workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
+		if ($apimethod == "soap1"){
+			$workingurl = "http://" . $urlparts["host"] . "/index.php/api/soap/?wsdl";    
+		} elseif ($apimethod == "soap2"){
+			$workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
+		}
 	}
 	return $workingurl;
 }
@@ -34,16 +39,19 @@ function postMessage($type, $title, $message = "none") {
 }
 
 if (!empty($_POST)) {
-  ## Fetch POST variables
-  $inputurl = $_POST['website'];
-  $user = $_POST['user'];
-  $pass = $_POST['pass'];
-#  $apimehod = $_POST['apimethod'];	#for future use with API method switching
+	## Fetch POST variables
+	$inputurl = $_POST['website'];
+	$user = $_POST['user'];
+	$pass = $_POST['pass'];
+	$apimethod = $_POST['apimethod'];
+	$targetversion = $_POST['targetversion'];
 } else {  
-  ## Default veribles for testing
-  $inputurl = "www.theath.simple-helix.net";
-  $user = "theath";
-  $pass = "donttell";
+	## Default veribles for testing
+	$inputurl = "www.theath.simple-helix.net";
+	$user = "theath";
+	$pass = "donttell";
+	$apimethod = "soap2";
+	$targetversion = "1";
 }
 ?>
 <!DOCTYPE html>
@@ -52,43 +60,58 @@ if (!empty($_POST)) {
 	<title>Mage Ape</title>
 	<!--<link rel="stylesheet" href="includes/bootstrap_3.3.5_min.css">-->
 	<link rel="stylesheet" href="includes/bootstrap_4.0.0_alpha2.css">
-	<script src"includes/bootstrap.min.js"></script>
+	<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+	<script src="includes/bootstrap_4.0.0_alpha2.js"></script>
 </head>
 <body>
 <div class="container">
-	<div class="row">
-		<div class="col-xs-12 col-md-4 text-xs-center text-md-left pull-md-right">
-			<img src="Mage_ape1.png" style="width:100%;max-width:220px;"><br>
-		</div>
-		<div class="col-sx-12 col-md-7 offset-lg-1">
-			<h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
-			<p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
-			<p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
-			<p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
-			<p>If you specify the user and password, Mage Ape will start a session and try to pull some data from the store. If any step fails, Mage Ape dutifully prints the error message for you you see.</p>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12 col-lg-8 offset-lg-2">
-			<p>Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl</p>
-				<form action="" method="POST">
-					<div class="form-group">
-						<div class="input-group">
-							<div class="input-group-addon">URL:</div>
-							<input type="text" class="form-control" name="website" value="<?php echo $inputurl; ?>">
-							<span class="input-group-btn">
-								<button type="submit" class="btn btn-primary">Get Info</button>
-							</span>
-						</div>
-						<div class="input-group">
-							<div class="input-group-addon">Username:</div>
-							<input type="text" class="form-control" name="user" value="<?php echo $user;?>">
-							<div class="input-group-addon">Password:</div>
-							<input type="password" class="form-control" name="pass" value="<?php echo $pass; ?>">
-						</div>
-					</div>
-				</form>
-			<p>
+  <div class="row">
+    <div class="col-xs-12 col-md-4 text-xs-center text-md-left pull-md-right">
+      <img src="Mage_ape1.png" style="width:100%;max-width:220px;"><br>
+    </div>
+    <div class="col-sx-12 col-md-7 offset-lg-1">
+      <h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
+      <p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
+      <p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
+      <p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
+      <p>If you specify the user and password, Mage Ape will start a session and try to pull some data from the store. If any step fails, Mage Ape dutifully prints the error message for you you see.</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12 col-lg-8 offset-lg-2">
+      <p>Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl</p>
+      <form action="" method="POST">
+        <div class="form-group">
+          Magento Version
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-outline-primary <?php if($targetversion=="1"){echo"active";}?>">
+              <input type="radio" name="targetversion" value="1" id="optionB1" <?php if($targetversion=="1"){echo"checked";}?>>1.x</label>
+            <label class="btn btn-outline-danger <?php if($targetversion=="2"){echo"active";}?>">
+              <input type="radio" name="targetversion" value="2" id="optionB2" disabled<?php if($targetversion=="2"){echo"checked";}?>>2.x</label>
+          </div>
+          API Method
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-outline-primary <?php if($apimethod=="soap1"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="soap1" id="optionA1" <?php if($apimethod=="soap1"){echo"checked";}?>>SOAP V1</label>
+            <label class="btn btn-outline-primary <?php if($apimethod=="soap2"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="soap2" id="optionA2" <?php if($apimethod=="soap2"){echo"checked";}?>>SOAP V2</label>
+          </div>
+          <div class="input-group">
+            <div class="input-group-addon">URL:</div>
+            <input type="text" class="form-control" name="website" value="<?php echo $inputurl; ?>">
+            <span class="input-group-btn">
+              <button type="submit" class="btn btn-primary">Get Info</button>
+            </span>
+          </div>
+          <div class="input-group">
+            <div class="input-group-addon">Username:</div>
+            <input type="text" class="form-control" name="user" value="<?php echo $user;?>">
+            <div class="input-group-addon">Password:</div>
+            <input type="password" class="form-control" name="pass" value="<?php echo $pass; ?>">
+          </div>
+        </div>
+      </form>
+      <p>
 <?php
 
 
@@ -98,8 +121,11 @@ if (!empty($_POST)) {
 	ob_flush();
 	$starttime = microtime(true);
 ## Filter URL. 
-	$url = correctURL($inputurl);
-	#$url = $inputurl;
+	if ($targetversion=="1") {
+		$url = correctURL($inputurl);
+	} elseif ($targetversion=="2") {
+		$url = $inputurl;
+	}
 	postMessage("alert-info", "Started test using:", $url);
 	ob_flush();
 
@@ -118,18 +144,32 @@ if (!empty($_POST)) {
 
 ## Create soap conneciton and run tests
 	try {
-		$options = array('exceptions'=>true, 'trace'=>1);
-		$client = new SoapClient($url, $options);
-		if (empty($user) || empty($pass)) {
-			$session = $client->startSession();
-			postMessage("alert-info", "Started session without auth", $session);
-		} else {
-			$session = $client->login($user, $pass);
-			postMessage("alert-success", "Login successful", $session);
-		}
-		ob_flush();
+	$options = array('exceptions'=>true, 'trace'=>1);
+	$client = new SoapClient($url, $options);
+	if (empty($user) || empty($pass)) {
+		$session = $client->startSession();
+		postMessage("alert-info", "Started session without auth", $session);
+	} else {
+		$session = $client->login($user, $pass);
+		postMessage("alert-success", "Login successful", $session);
+	}
+	ob_flush();
 
 		#try a few useful commands to gather data and show connection is working.
+	if ($apimethod == "soap1") {
+		$result = $client->call($session, 'core_magento.info');
+                $msg = $result['magento_edition'] . " edition " . $result['magento_version'];
+                postMessage("alert-info", "Version:", $msg);
+                ob_flush();
+
+                $msg = "";
+                $result = $client->resources($session);
+                foreach ($result as $a) {
+                        $msg = $msg . $a['title'] . "<br>";
+                }
+                postMessage("alert-info", "Available resources:", $msg);
+		ob_flush();
+	} elseif ($apimethod == "soap2") {	
 		$result = $client->magentoInfo($session);
 		$msg = $result->magento_edition . " edition " . $result->magento_version;
 		postMessage("alert-info", "Version:", $msg);
@@ -142,7 +182,7 @@ if (!empty($_POST)) {
 		}
 		postMessage("alert-info", "Available resources:", $msg);
 		ob_flush();
-
+	}
 	}
 
 	#Error handling
@@ -158,9 +198,9 @@ if (!empty($_POST)) {
 
 }
 ?>
-			</p>
-		</div>
-	</div>
+      </p>
+    </div>
+  </div>
 </div>
 
 <script>document.getElementById('loadingGif').style.display = 'none';</script>
