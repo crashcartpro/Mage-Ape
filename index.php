@@ -10,15 +10,19 @@
 #set environment variables
 ini_set("default_socket_timeout", 6000);
 ob_implicit_flush(1);
+$userpath = true;
 
 function correctURL($inputurl) {
 	# If http is missing, add http, 
 	# If wsdl isn't declared, add wsdl and path
 	global $apimethod;
+	global $userpath;
+	
 	$workingurl = filter_var($inputurl, FILTER_SANITIZE_URL);
 	if (strpos($workingurl, "http") !== 0) {$workingurl = "http://" . $workingurl;}
 	$urlparts = parse_url($workingurl);
-	if (strpos($workingurl, "wsdl") !== (strlen($workingurl)-4)) {
+	if (!isset($urlparts["path"])) {
+		$userpath = false;
 		if ($apimethod == "soap1"){
 			$workingurl = "http://" . $urlparts["host"] . "/index.php/api/soap/?wsdl";    
 		} elseif ($apimethod == "soap2"){
@@ -59,6 +63,7 @@ if (!empty($_POST)) {
 <head>
 	<title>Mage Ape</title>
 	<!--<link rel="stylesheet" href="includes/bootstrap_3.3.5_min.css">-->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="includes/bootstrap_4.0.0_alpha2.css">
 	<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
 	<script src="includes/bootstrap_4.0.0_alpha2.js"></script>
@@ -87,7 +92,7 @@ if (!empty($_POST)) {
             <label class="btn btn-outline-primary <?php if($targetversion=="1"){echo"active";}?>">
               <input type="radio" name="targetversion" value="1" id="optionB1" <?php if($targetversion=="1"){echo"checked";}?>>1.x</label>
             <label class="btn btn-outline-danger <?php if($targetversion=="2"){echo"active";}?>">
-              <input type="radio" name="targetversion" value="2" id="optionB2" disabled<?php if($targetversion=="2"){echo"checked";}?>>2.x</label>
+              <input type="radio" name="targetversion" value="2" id="optionB2" <?php if($targetversion=="2"){echo"checked";}?>>2.x</label>
           </div>
           API Method
           <div class="btn-group" data-toggle="buttons">
@@ -126,7 +131,7 @@ if (!empty($_POST)) {
 	} elseif ($targetversion=="2") {
 		$url = $inputurl;
 	}
-	postMessage("alert-info", "Started test using:", $url);
+	postMessage("alert-info", "Started test using ".($userpath?"path you specified":"default path"), $url);
 	ob_flush();
 
 ## check link response
@@ -144,8 +149,10 @@ if (!empty($_POST)) {
 
 ## Create soap conneciton and run tests
 	try {
-	$options = array('exceptions'=>true, 'trace'=>1);
+	$options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
 	$client = new SoapClient($url, $options);
+	
+	
 	if (empty($user) || empty($pass)) {
 		$session = $client->startSession();
 		postMessage("alert-info", "Started session without auth", $session);
@@ -191,7 +198,26 @@ if (!empty($_POST)) {
 		echo '<div class="alert alert-danger" role="alert">';
 		echo '<div style="float:right">'.$timestamp.'</div>';
 		echo '<h4>Catch Error</h4>';
-		echo $e->getMessage() . '<hr><pre>';
+		## Profile error
+		if (is_a($e, 'SoapFault')) {
+			## object type denotes SOAP error returned
+			echo $e->faultstring . '<br>';
+			if ($e->faultstring == 'Access denied.') {
+				echo 'The user <strong>' . $user . '</strong> cannot ';
+				foreach ($e->getTrace() as $traced) { 
+					echo '-&gt;<strong>' . $traced['function'] . '</strong>';
+					
+				}
+				if ($traced['funciton'] == "login") {
+					echo '<br>check username and password.';
+				} else {
+					echo "<br>Have you checked the user's roll?";
+				}
+				echo '<hr><pre>';
+			}
+		} else {
+			echo $e->getMessage() . '<hr><pre>';
+		}
 		var_dump($e);
 		echo "</pre></div>\r\n";
 	}
