@@ -11,6 +11,7 @@
 ini_set("default_socket_timeout", 6000);
 ob_implicit_flush(1);
 $userpath = true;
+$redirected = false;
 
 function correctURL($inputurl) {
 	# If http is missing, add http, 
@@ -36,7 +37,7 @@ function postMessage($type, $title, $message = "none") {
 	global $starttime;
 	$timestamp = round(microtime(true)-$starttime,2);
 	echo '<div class="alert '.$type.'" role="alert">';
-	echo '<div style="float:right">'.$timestamp.'</div>';
+	echo '<div style="float:right">'.$timestamp.'s</div>';
 	echo '<h4>'.$title.'</h4>';
 	if ($message != "none") {echo $message;}
 	echo "</div>\r\n";
@@ -136,15 +137,18 @@ if (!empty($_POST)) {
 
 ## check link response
 	$headers = get_headers($url,1);
-	if (strpos($headers[0], "200")){
-		postMessage("alert-success", "URL is ok");
-	} elseif (strpos($headers[0], "301") or strpos($headers[0], "302")){
-		postMessage("alert-danger", "URL redirects to:", $headers["Location"]);
-	} elseif (strpos($headers[0], "404")){
-		postMessage("alert-danger", "URL path does not exist");
-	} else {
-		postMessage("alert-danger", "URL returns a bad request");
-	}
+	$msgtype = "alert-danger"; #if it ain't good, it's bad.
+	$returncode = intval(substr($headers[0], 9, 3)); #I dislike this method, as it assumes the format of the returned string
+	if ($returncode < 200) { # 0 - 199 Progress messages. would be wierd to get, but ok.
+		$msgtype = "alert-warning";
+	} elseif ($returncode >=200 && $returncode < 300) { # 200 - 299
+		$msgtype = "alert-success";
+	} elseif ($returncode >=300 && $returncode < 400) { # 300 - 399 redirect
+		$msgtype = "alert-warning";
+		$redirected = true;
+	} # 400 and up basically everything else. either not found, forbiden, or server error.
+	$msg = $headers[0].($redirected?"<br>&#8627;&nbsp;".$headers['Location']."<br>&nbsp;&#8627;Returns:&nbsp;".$headers[1]:'');
+	postMessage($msgtype, "Request returned:", $msg);
 	ob_flush(); 
 
 ## Create soap conneciton and run tests
@@ -196,7 +200,7 @@ if (!empty($_POST)) {
 	catch(Exception $e) {
 		$timestamp = round(microtime(true)-$starttime,2);
 		echo '<div class="alert alert-danger" role="alert">';
-		echo '<div style="float:right">'.$timestamp.'</div>';
+		echo '<div style="float:right">'.$timestamp.'s</div>';
 		echo '<h4>Catch Error</h4>';
 		## Profile error
 		if (is_a($e, 'SoapFault')) {
@@ -213,11 +217,11 @@ if (!empty($_POST)) {
 				} else {
 					echo "<br>Have you checked the user's roll?";
 				}
-				echo '<hr><pre>';
 			}
 		} else {
-			echo $e->getMessage() . '<hr><pre>';
+			echo $e->getMessage();
 		}
+		echo '<hr><pre>';
 		var_dump($e);
 		echo "</pre></div>\r\n";
 	}
