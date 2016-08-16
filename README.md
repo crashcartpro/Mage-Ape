@@ -9,25 +9,23 @@ Magento is an extensable e-ecomerce framework with many moving parts. Just one s
 
 However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 
+<http://taoexmachina.com/mage-ape/>
+
 ### Dependencies
 
 * PHP version 5.2 or greater
 * php-soap module
 
 
-### Todo / Road Map
+### Recently implemented features
 
-* ~~Start project~~
-* ~~landing page can enter target site and pull SOAP wsld info~~
-* ~~sanitizeand simplify URL input~~
-* ~~Check that url actually resolves before doing anything else.~~
-* ~~add user/pass feilds~~
-* ~~make authed function calls~~
-* ~~trap and report errors for troubleshooting~~
-* ~~have the form retain previous values after submiting~~
-* ~~timestamp messages~~
-* ~~Loading gif~~
-* select an available SOAP method?
-* keep a more detailed log of calls and responces, and print it out after all tests complete.
-* ~~optional switch for Magento SOAP v1 or SOAP v2~~
+* Expanded and improved printed message based on returned HTTP codes for input URL. Mage-Ape will color the alert box for warning, sucess, or danger based on status code ranges 2xx, 3xx, 4xx, etc. It will also print the location specified in a redirect and the subsequent return code. 
+* Mage-Ape now treats any path you add after the domain is where the WSLD will be located, and not change it. If you input a domain without path, Mage-Ape will still assume default magento API paths, and try to use those. Printed message will also reflect whether the default or specified URL is being used.
+* Added buttons for magneto version and SOAP version 
+* Added timestamps to printed messages
+
+### Road Map / Ideas
+
+* keep a more detailed log of calls and responces, and print it out after all tests complete, or keep some local log file maybe.
 * more optional switches for XML-RPC?
+
