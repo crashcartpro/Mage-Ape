@@ -1,7 +1,7 @@
 <?php
 #########################
 #  Mage-Ape
-#    v0.9 
+#    v0.9.3 
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
@@ -24,9 +24,9 @@ function correctURL($inputurl) {
 	$urlparts = parse_url($workingurl);
 	if (!isset($urlparts["path"])) {
 		$userpath = false;
-		if ($apimethod == "soap1"){
+		if ($apimethod == "m1_soap1"){
 			$workingurl = "http://" . $urlparts["host"] . "/index.php/api/soap/?wsdl";    
-		} elseif ($apimethod == "soap2"){
+		} elseif ($apimethod == "m1_soap2"){
 			$workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";    
 		}
 	}
@@ -49,14 +49,12 @@ if (!empty($_POST)) {
 	$user = $_POST['user'];
 	$pass = $_POST['pass'];
 	$apimethod = $_POST['apimethod'];
-	$targetversion = $_POST['targetversion'];
 } else {  
 	## Default veribles for testing
 	$inputurl = "www.theath.simple-helix.net";
 	$user = "theath";
 	$pass = "donttell";
-	$apimethod = "soap2";
-	$targetversion = "1";
+	$apimethod = "m1_soap2";
 }
 ?>
 <!DOCTYPE html>
@@ -88,19 +86,14 @@ if (!empty($_POST)) {
       <p>Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl</p>
       <form action="" method="POST">
         <div class="form-group">
-          Magento Version
+          Method
           <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-outline-primary <?php if($targetversion=="1"){echo"active";}?>">
-              <input type="radio" name="targetversion" value="1" id="optionB1" <?php if($targetversion=="1"){echo"checked";}?>>1.x</label>
-            <label class="btn btn-outline-danger <?php if($targetversion=="2"){echo"active";}?>">
-              <input type="radio" name="targetversion" value="2" id="optionB2" <?php if($targetversion=="2"){echo"checked";}?>>2.x</label>
-          </div>
-          API Method
-          <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-outline-primary <?php if($apimethod=="soap1"){echo"active";}?>">
-              <input type="radio" name="apimethod" value="soap1" id="optionA1" <?php if($apimethod=="soap1"){echo"checked";}?>>SOAP V1</label>
-            <label class="btn btn-outline-primary <?php if($apimethod=="soap2"){echo"active";}?>">
-              <input type="radio" name="apimethod" value="soap2" id="optionA2" <?php if($apimethod=="soap2"){echo"checked";}?>>SOAP V2</label>
+            <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap1"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="m1_soap1" id="optionA1" <?php if($apimethod=="m1_soap1"){echo"checked";}?>>Magento 1.x SOAP V1</label>
+            <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap2"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="m1_soap2" id="optionA2" <?php if($apimethod=="m1_soap2"){echo"checked";}?>>Magento 1.x SOAP V2</label>
+            <label class="btn btn-outline-danger <?php if($apimethod=="m2_soap"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="m2_soap" id="optionA3" <?php if($apimethod=="m2_soap"){echo"checked";}?>>Magento 2.x SOAP</label>
           </div>
           <div class="input-group">
             <div class="input-group-addon">URL:</div>
@@ -127,11 +120,7 @@ if (!empty($_POST)) {
 	ob_flush();
 	$starttime = microtime(true);
 ## Filter URL. 
-	if ($targetversion=="1") {
-		$url = correctURL($inputurl);
-	} elseif ($targetversion=="2") {
-		$url = $inputurl;
-	}
+	$url = correctURL($inputurl);
 	postMessage("alert-info", "Started test using ".($userpath?"path you specified":"default path"), $url);
 	ob_flush();
 
@@ -167,7 +156,7 @@ if (!empty($_POST)) {
 	ob_flush();
 
 		#try a few useful commands to gather data and show connection is working.
-	if ($apimethod == "soap1") {
+	if ($apimethod == "m1_soap1") {
 		$result = $client->call($session, 'core_magento.info');
                 $msg = $result['magento_edition'] . " edition " . $result['magento_version'];
                 postMessage("alert-info", "Version:", $msg);
@@ -180,7 +169,7 @@ if (!empty($_POST)) {
                 }
                 postMessage("alert-info", "Available resources:", $msg);
 		ob_flush();
-	} elseif ($apimethod == "soap2") {	
+	} elseif ($apimethod == "m1_soap2") {	
 		$result = $client->magentoInfo($session);
 		$msg = $result->magento_edition . " edition " . $result->magento_version;
 		postMessage("alert-info", "Version:", $msg);

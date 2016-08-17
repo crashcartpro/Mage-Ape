@@ -26,6 +26,6 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 
 ### Road Map / Ideas
 
-* keep a more detailed log of calls and responces, and print it out after all tests complete, or keep some local log file maybe.
-* more optional switches for XML-RPC?
-
+* Keep a more detailed log of calls and responces, and print it out after all tests complete, or keep some local log file maybe.
+* More optional switches for XML-RPC?
+* Add Magento 2.x support
