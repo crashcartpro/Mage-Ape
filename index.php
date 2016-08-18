@@ -1,7 +1,7 @@
 <?php
 #########################
 #  Mage-Ape
-#    v0.9.3 
+#    v0.9.5 
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
@@ -32,6 +32,21 @@ function correctURL($inputurl) {
 	}
 	return $workingurl;
 }
+
+function getFromHttp($target_url) {
+	$ch = curl_init($target_url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HEADER, true);
+	$r = curl_exec($ch);
+	$rinfo = curl_getinfo($ch);
+	$hcode = $rinfo['http_code'];
+	$new_target = $rinfo['redirect_url'];
+	$htext = strtok($r, "\n");
+	$body = substr($r, $rinfo['header_size']);
+	curl_close($ch);
+	return array("code" => $hcode, "head" => $htext, "body" => $body, "redirect" => $new_target);
+}
+
 
 function postMessage($type, $title, $message = "none") {
 	global $starttime;
@@ -125,20 +140,25 @@ if (!empty($_POST)) {
 	ob_flush();
 
 ## check link response
-	$headers = get_headers($url,1);
+	$url_response = getFromHttp($url);
 	$msgtype = "alert-danger"; #if it ain't good, it's bad.
-	$returncode = intval(substr($headers[0], 9, 3)); #I dislike this method, as it assumes the format of the returned string
-	if ($returncode < 200) { # 0 - 199 Progress messages. would be wierd to get, but ok.
+	$msg = $url_response['head'];
+	if ($url_response['code'] < 200) { # 0 - 199 Progress messages. would be wierd to get, but ok.
 		$msgtype = "alert-warning";
-	} elseif ($returncode >=200 && $returncode < 300) { # 200 - 299
+	} elseif ($url_response['code'] >=200 && $url_response['code'] < 300) { # 200 - 299
 		$msgtype = "alert-success";
-	} elseif ($returncode >=300 && $returncode < 400) { # 300 - 399 redirect
+	} elseif ($url_response['code'] >=300 && $url_response['code'] < 400) { # 300 - 399 redirect
 		$msgtype = "alert-warning";
-		$redirected = true;
+		$followup = getFromHttp($url_response['redirect']);
+		$msg .= "<br>&#8627;&nbsp;".$url_response['redirect'];
+		$msg .= "<br>&nbsp;&#8627;&nbsp;Returns:&nbsp;".$followup['head'];
 	} # 400 and up basically everything else. either not found, forbiden, or server error.
-	$msg = $headers[0].($redirected?"<br>&#8627;&nbsp;".$headers['Location']."<br>&nbsp;&#8627;Returns:&nbsp;".$headers[1]:'');
 	postMessage($msgtype, "Request returned:", $msg);
 	ob_flush(); 
+
+## Validate WSLD
+
+	
 
 ## Create soap conneciton and run tests
 	try {
@@ -148,10 +168,10 @@ if (!empty($_POST)) {
 	
 	if (empty($user) || empty($pass)) {
 		$session = $client->startSession();
-		postMessage("alert-info", "Started session without auth", $session);
+		postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
 	} else {
 		$session = $client->login($user, $pass);
-		postMessage("alert-success", "Login successful", $session);
+		postMessage("alert-success", "Login successful", "Session ID: ".$session);
 	}
 	ob_flush();
 

@@ -20,7 +20,7 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 ### Recently implemented features
 
 * Expanded and improved printed message based on returned HTTP codes for input URL. Mage-Ape will color the alert box for warning, sucess, or danger based on status code ranges 2xx, 3xx, 4xx, etc. It will also print the location specified in a redirect and the subsequent return code. 
-* Mage-Ape now treats any path you add after the domain is where the WSLD will be located, and not change it. If you input a domain without path, Mage-Ape will still assume default magento API paths, and try to use those. Printed message will also reflect whether the default or specified URL is being used.
+* Mage-Ape now treats any path you add after the domain as where the WSLD will be located, and not change it. If you input a domain without path, Mage-Ape will still assume default magento API paths, and try to use those. Printed message will also reflect whether the default or specified URL is being used.
 * Added buttons for magneto version and SOAP version 
 * Added timestamps to printed messages
 
