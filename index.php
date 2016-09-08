@@ -22,11 +22,11 @@ function correctURL($inputurl)
     global $apimethod;
     global $userpath;
 
-    $workingurl                                         = filter_var($inputurl, FILTER_SANITIZE_URL);
+    $workingurl = filter_var($inputurl, FILTER_SANITIZE_URL);
     if (strpos($workingurl, "http") !== 0) {
         $workingurl = "http://" . $workingurl;
     }
-    $urlparts                                           = parse_url($workingurl);
+    $urlparts   = parse_url($workingurl);
     if (!isset($urlparts["path"])) {
         $userpath = false;
         if ($apimethod == "m1_soap1")
@@ -136,12 +136,13 @@ if (!empty($_POST)) {
           </div>
         </div>
       </form>
+      * Magento 2 support is broken WIP
       <p>
 <?php
 
 
 if (!empty($_POST)) {
-    ## loading gif
+## loading gif
     echo '<img id="loadingGif" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
     ob_flush();
     $starttime = microtime(true);
@@ -171,45 +172,57 @@ if (!empty($_POST)) {
 
 
 
-## Create soap conneciton and run tests
+## Try a few useful commands to gather data and show connection is working.
     try {
 
-
-
-    // if (empty($user) || empty($pass)) {
-    //     $session = $client->startSession();
-    //     postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
-    // } else {
-    //     $session = $client->login($user, $pass);
-    //     postMessage("alert-success", "Login successful", "Session ID: ".$session);
-    // }
-    // ob_flush();
-
-        #try a few useful commands to gather data and show connection is working.
     if ($apimethod == "m1_soap1") {
+
+        #set options and create SOAP client object
         $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
         $client  = new SoapClient($url, $options);
-
-        $result      = $client->call($session, 'core_magento.info');
-                $msg = $result['magento_edition'] . " edition " . $result['magento_version'];
-                postMessage("alert-info", "Version:", $msg);
-                ob_flush();
-
-                $msg    = "";
-                $result = $client->resources($session);
-                foreach ($result as $a) {
-                        $msg = $msg . $a['title'] . "<br>";
-                }
-                postMessage("alert-info", "Available resources:", $msg);
+        #try starting session with SOAP client
+        if (empty($user) || empty($pass)) {
+            $session = $client->startSession();
+            postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
+        } else {
+            $session = $client->login($user, $pass);
+            postMessage("alert-success", "Login successful", "Session ID: ".$session);
+        }
         ob_flush();
+        #try to read core_magento.info through SOAP client 
+        $result = $client->call($session, 'core_magento.info');
+        $msg    = $result['magento_edition'] . " edition " . $result['magento_version'];
+        postMessage("alert-info", "Version:", $msg);
+        ob_flush();
+        #try to read resource list through SOAP client
+        $msg    = "";
+        $result = $client->resources($session);
+        foreach ($result as $a) {
+            $msg = $msg . $a['title'] . "<br>";
+        }
+        postMessage("alert-info", "Available resources:", $msg);
+        ob_flush();
+
     } elseif ($apimethod == "m1_soap2") {
+
+        #set options and create SOAP client object
         $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
         $client  = new SoapClient($url, $options);
+        #try starting session with SOAP client
+        if (empty($user) || empty($pass)) {
+            $session = $client->startSession();
+            postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
+        } else {
+            $session = $client->login($user, $pass);
+            postMessage("alert-success", "Login successful", "Session ID: ".$session);
+        }
+        ob_flush();
+        #try to read core_magento.info through SOAP client 
         $result  = $client->magentoInfo($session);
         $msg     = $result->magento_edition . " edition " . $result->magento_version;
         postMessage("alert-info", "Version:", $msg);
         ob_flush();
-
+        #try to read resource list through SOAP client
         $msg    = "";
         $result = $client->resources($session);
         foreach ($result as $a) {
@@ -217,6 +230,7 @@ if (!empty($_POST)) {
         }
         postMessage("alert-info", "Available resources:", $msg);
         ob_flush();
+
     } elseif ($apimethod == "m2_rest") {
     	
         // Start of customizations
@@ -246,7 +260,7 @@ if (!empty($_POST)) {
         curl_setopt_array($ch, $options);
         $token = curl_exec($ch);
 
-        $ch  = curl_init("$url/index.php/rest/V1/modules");
+        $ch    = curl_init("$url/index.php/rest/V1/modules");
 
         $options =
         [
@@ -270,7 +284,7 @@ if (!empty($_POST)) {
         postMessage("alert-info", "Available resources:", $msg);
         ob_flush();
     }///end of Soap2 REST customizations
-}
+    }
 
     #Error handling
     catch(Exception $e) {
