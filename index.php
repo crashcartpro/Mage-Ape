@@ -1,24 +1,39 @@
 <?php
 #########################
 #  Mage-Ape
-#    v0.9.X
+#    v0.9.9
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
 #
+# *** logic of the test ***
+# 1) user provides: api endpoint and api authentication.
+# 2) validate user input.
+# 3) check response of endpoint.
+# 4) check content of response. (wsdl, schema, html?)
+# 5) instantiate client connection and login.
+# 6) pull info from API call.
+# 7) do more API calls to be sure.
+#
 
-#set environment variables
+// set environment variables
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set("default_socket_timeout", 6000);
 ob_implicit_flush(1);
+
+define("SUCCESS", "alert-success");
+define("INFO", "alert-info");
+define("WARNING", "alert-warning");
+define("DANGER", "alert-danger");
+
 $userpath   = true;
 $redirected = false;
 
 function correctURL($inputurl)
 {
-    # If http is missing, add http,
-    # If wsdl isn't declared, add wsdl and path
+    // If http is missing, add http,
+    // If wsdl isn't declared, add wsdl and path
     global $apimethod;
     global $userpath;
 
@@ -29,12 +44,14 @@ function correctURL($inputurl)
     $urlparts   = parse_url($workingurl);
     if (!isset($urlparts["path"])) {
         $userpath = false;
-        if ($apimethod == "m1_soap1")
-        {
+        if ($apimethod == "m1_soap1") {
             $workingurl = "http://" . $urlparts["host"] . "/index.php/api/soap/?wsdl";
-        } elseif ($apimethod == "m1_soap2")
-        {
+        } elseif ($apimethod == "m1_soap2") {
             $workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";
+        } elseif ($apimethod == "m2_soap") {
+	    $workingurl = "http://" . $urlparts["host"] . "/index.php/soap/";
+        } elseif ($apimethod == "m2_rest") {
+            #$workingurl = "http://" . $urlparts["host"] . "/index.php/rest/default/schema";
         }
     }
     return $workingurl;
@@ -70,17 +87,22 @@ function postMessage($type, $title, $message = "none")
 }
 
 if (!empty($_POST)) {
-    ## Fetch POST variables
+    // Fetch POST variables
     $inputurl  = $_POST['website'];
     $user      = $_POST['user'];
     $pass      = $_POST['pass'];
     $apimethod = $_POST['apimethod'];
 } else {
-    ## Default veribles for testing
-    $inputurl  = "magento2demo.firebearstudio.com";
-    $user      = "demo";
-    $pass      = "1q2w3e4r";
-    $apimethod = "m1_soap2";
+    // Default veribles for testing
+#    $inputurl  = "magento2demo.firebearstudio.com";
+#    $user      = "demo";
+#    $pass      = "1q2w3e4r";
+#    $apimethod = "m1_soap2";
+
+    $inputurl  = "mage2.mageape.com";
+    $user      = "admin";
+    $pass      = "tellno1";
+    $apimethod = "m2_soap";    
 }
 ?>
 <!DOCTYPE html>
@@ -100,7 +122,7 @@ if (!empty($_POST)) {
       <img src="Mage_ape1.png" style="width:100%;max-width:220px;"><br>
     </div>
     <div class="col-sx-12 col-md-7 offset-lg-1">
-      <h1><a href="http://taoexmachina.com/mage-ape">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
+      <h1><a href="http://mageape.com/">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
       <p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
       <p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
       <p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
@@ -115,11 +137,13 @@ if (!empty($_POST)) {
           Method
           <div class="btn-group" data-toggle="buttons">
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap1"){echo"active";}?>">
-              <input type="radio" name="apimethod" value="m1_soap1" id="optionA1" <?php if($apimethod=="m1_soap1"){echo"checked";}?>>Magento 1.x SOAP V1</label>
+              <input type="radio" name="apimethod" value="m1_soap1" id="optionA1" <?php if($apimethod=="m1_soap1"){echo"checked";}?>>Mage 1.x SOAP V1</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap2"){echo"active";}?>">
-              <input type="radio" name="apimethod" value="m1_soap2" id="optionA2" <?php if($apimethod=="m1_soap2"){echo"checked";}?>>Magento 1.x SOAP V2</label>
+              <input type="radio" name="apimethod" value="m1_soap2" id="optionA2" <?php if($apimethod=="m1_soap2"){echo"checked";}?>>Mage 1.x SOAP V2</label>
+            <label class="btn btn-outline-primary <?php if($apimethod=="m2_soap"){echo"active";}?>">
+              <input type="radio" name="apimethod" value="m2_soap" id="optionA3" <?php if($apimethod=="m2_soap"){echo"checked";}?>>Mage 2.x SOAP</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m2_rest"){echo"active";}?>">
-              <input type="radio" name="apimethod" value="m2_rest" id="optionA3" <?php if($apimethod=="m2_rest"){echo"checked";}?>>Magento 2.x REST</label>
+              <input type="radio" name="apimethod" value="m2_rest" id="optionA4" <?php if($apimethod=="m2_rest"){echo"checked";}?>>Mage 2.x REST</label>
           </div>
           <div class="input-group">
             <div class="input-group-addon">URL:</div>
@@ -140,96 +164,112 @@ if (!empty($_POST)) {
       <p>
 <?php
 
-
 if (!empty($_POST)) {
-## loading gif
+// loading gif
     echo '<img id="loadingGif" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
     ob_flush();
     $starttime = microtime(true);
-## Filter URL.
+// Filter URL.
     $url = correctURL($inputurl);
-    postMessage("alert-info", "Started test using ".($userpath?"path you specified":"default path"), $url);
+    postMessage(INFO, "Started test using ".($userpath?"path you specified":"default path"), $url);
     ob_flush();
 
-## check link response
-    $url_response = getFromHttp($url);
-    $msgtype      = "alert-danger"; #if it ain't good, it's bad.
+// check link response
+    if ($apimethod == "m2_rest") { 
+        $url_response = getFromHttp($url."/index.php/rest/default/schema");
+    } else {
+        $url_response = getFromHttp($url);
+    }
+    $msgtype      = DANGER; // if it ain't good, it's bad.
     $msg          = $url_response['head'];
-    if ($url_response['code'] < 200) { # 0 - 199 Progress messages. would be wierd to get, but ok.
-        $msgtype = "alert-warning";
-    } elseif ($url_response['code'] >=200 && $url_response['code'] < 300) { # 200 - 299
-        $msgtype = "alert-success";
-    } elseif ($url_response['code'] >=300 && $url_response['code'] < 400) { # 300 - 399 redirect
-        $msgtype  = "alert-warning";
+    if ($url_response['code'] < 200) { // 0 - 199 Progress messages. would be wierd to get, but ok.
+        $msgtype  = WARNING;
+    } elseif ($url_response['code'] >=200 && $url_response['code'] < 300) { // 200 - 299
+        $msgtype  = SUCCESS;
+    } elseif ($url_response['code'] >=300 && $url_response['code'] < 400) { // 300 - 399 redirect
+        $msgtype  = WARNING;
         $followup = getFromHttp($url_response['redirect']);
-        $msg .= "<br>&#8627;&nbsp;".$url_response['redirect'];
-        $msg .= "<br>&nbsp;&#8627;&nbsp;Returns:&nbsp;".$followup['head'];
-    } # 400 and up basically everything else. either not found, forbiden, or server error.
+        $msg     .= "<br>&#8627;&nbsp;".$url_response['redirect'];
+        $msg     .= "<br>&nbsp;&#8627;&nbsp;Returns:&nbsp;".$followup['head'];
+    } // 400 and up basically everything else. either not found, forbiden, or server error.
     postMessage($msgtype, "Request returned:", $msg);
     ob_flush();
 
-## Validate WSLD
+// Validate WSLD
 
 
 
-## Try a few useful commands to gather data and show connection is working.
+// Try a few useful commands to gather data and show connection is working.
     try {
 
     if ($apimethod == "m1_soap1") {
 
-        #set options and create SOAP client object
+        // set options and create SOAP client object
         $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
         $client  = new SoapClient($url, $options);
-        #try starting session with SOAP client
+        // try starting session with SOAP client
         if (empty($user) || empty($pass)) {
             $session = $client->startSession();
-            postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
+            postMessage(INFO, "Started session without auth", "Session ID: ".$session);
         } else {
             $session = $client->login($user, $pass);
-            postMessage("alert-success", "Login successful", "Session ID: ".$session);
+            postMessage(SUCCESS, "Login successful", "Session ID: ".$session);
         }
         ob_flush();
-        #try to read core_magento.info through SOAP client 
+        // try to read core_magento.info through SOAP client 
         $result = $client->call($session, 'core_magento.info');
         $msg    = $result['magento_edition'] . " edition " . $result['magento_version'];
-        postMessage("alert-info", "Version:", $msg);
+        postMessage(INFO, "Version:", $msg);
         ob_flush();
-        #try to read resource list through SOAP client
+        // try to read resource list through SOAP client
         $msg    = "";
         $result = $client->resources($session);
         foreach ($result as $a) {
             $msg = $msg . $a['title'] . "<br>";
         }
-        postMessage("alert-info", "Available resources:", $msg);
+        postMessage(INFO, "Available resources:", $msg);
         ob_flush();
 
     } elseif ($apimethod == "m1_soap2") {
 
-        #set options and create SOAP client object
+        // set options and create SOAP client object
         $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
         $client  = new SoapClient($url, $options);
-        #try starting session with SOAP client
+        // try starting session with SOAP client
         if (empty($user) || empty($pass)) {
             $session = $client->startSession();
-            postMessage("alert-info", "Started session without auth", "Session ID: ".$session);
+            postMessage(INFO, "Started session without auth", "Session ID: ".$session);
         } else {
             $session = $client->login($user, $pass);
-            postMessage("alert-success", "Login successful", "Session ID: ".$session);
+            postMessage(SUCCESS, "Login successful", "Session ID: ".$session);
         }
         ob_flush();
-        #try to read core_magento.info through SOAP client 
+        // try to read core_magento.info through SOAP client 
         $result  = $client->magentoInfo($session);
         $msg     = $result->magento_edition . " edition " . $result->magento_version;
-        postMessage("alert-info", "Version:", $msg);
+        postMessage(INFO, "Version:", $msg);
         ob_flush();
-        #try to read resource list through SOAP client
+        // try to read resource list through SOAP client
         $msg    = "";
         $result = $client->resources($session);
         foreach ($result as $a) {
             $msg = $msg . $a->title . "<br>";
         }
-        postMessage("alert-info", "Available resources:", $msg);
+        postMessage(INFO, "Available resources:", $msg);
         ob_flush();
+
+    } elseif ($apimethod == "m2_soap") {
+        $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
+        // get admin token
+        $client = new SoapClient($url."default?wsdl&services=integrationAdminTokenServiceV1", $options);
+        $result = $client->integrationAdminTokenServiceV1CreateAdminAccessToken(['username'=>$user, 'password'=>$pass]);
+
+	postMessage(SUCCESS, "Login successful", "Token: ".$result->result); 
+        // try to read data through SOAP
+        $options['stream_context'] = stream_context_create(['http' => ['header' => sprintf("Authorization: Bearer ".$result->result)]]);
+        $client = new SoapClient($url."default?wsdl&services=backendModuleServiceV1", $options);
+        $result = $client->backendModuleServiceV1GetModules();
+        postMessage(INFO, "backendModuleServiceV1", print_r($result));
 
     } elseif ($apimethod == "m2_rest") {
     	
@@ -238,7 +278,7 @@ if (!empty($_POST)) {
         $response = json_decode(file_get_contents("$url/index.php/rest/default/schema"));
         $result   = $response->info;
         $msg      = $result->title . " edition " . $result->version;
-        postMessage("alert-info", "Version:", $msg);
+        postMessage(INFO, "Version:", $msg);
 
         //get user info from above
         $userData = [
@@ -281,20 +321,20 @@ if (!empty($_POST)) {
 
             $msg = $msg . $a . "<br>";
         }
-        postMessage("alert-info", "Available resources:", $msg);
+        postMessage(INFO, "Available resources:", $msg);
         ob_flush();
     }///end of Soap2 REST customizations
     }
 
-    #Error handling
+// Error handling
     catch(Exception $e) {
         $timestamp = round(microtime(true)-$starttime,2);
-        echo '<div class="alert alert-danger" role="alert">';
+        echo '<div class="alert '.DANGER.'" role="alert">';
         echo '<div style="float:right">'.$timestamp.'s</div>';
         echo '<h4>Catch Error</h4>';
-        ## Profile error
+        // Profile the error
         if (is_a($e, 'SoapFault')) {
-            ## object type denotes SOAP error returned
+            // object type denotes SOAP error returned
             echo $e->faultstring . '<br>';
             if ($e->faultstring == 'Access denied.') {
                 echo 'The user <strong>' . $user . '</strong> cannot ';
@@ -311,9 +351,9 @@ if (!empty($_POST)) {
         } else {
             echo $e->getMessage();
         }
-        echo '<hr><pre>';
+        echo '<hr><pre><code>';
         var_dump($e);
-        echo "</pre></div>\r\n";
+        echo "</code></pre></div>\r\n";
     }
 
 }
