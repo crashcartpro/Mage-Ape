@@ -23,9 +23,9 @@ However, sometimes things fail. Mage Ape wants to help you troubleshoot.
 * Mage-Ape now treats any path you add after the domain as where the WSLD will be located, and not change it. If you input a domain without path, Mage-Ape will still assume default magento API paths, and try to use those. Printed message will also reflect whether the default or specified URL is being used.
 * Added buttons for magneto version and SOAP version 
 * Added timestamps to printed messages
+* Added Magento 2.x support
 
 ### Road Map / Ideas
 
 * Keep a more detailed log of calls and responces, and print it out after all tests complete, or keep some local log file maybe.
 * More optional switches for XML-RPC?
-* Add Magento 2.x support

@@ -1,7 +1,9 @@
 <?php
+
+require '/var/www/Mage-Ape/kint.php';
 #########################
 #  Mage-Ape
-#    v0.9.XI
+#    v1.0
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
@@ -49,7 +51,7 @@ function correctURL($inputurl)
         } elseif ($apimethod == "m1_soap2") {
             $workingurl = "http://" . $urlparts["host"] . "/index.php/api/v2_soap/?wsdl";
         } elseif ($apimethod == "m2_soap") {
-	    $workingurl = "http://" . $urlparts["host"] . "/index.php/soap/";
+	    $workingurl = "http://" . $urlparts["host"];
         } elseif ($apimethod == "m2_rest") {
             #$workingurl = "http://" . $urlparts["host"] . "/index.php/rest/default/schema";
         }
@@ -160,7 +162,7 @@ if (!empty($_POST)) {
           </div>
         </div>
       </form>
-      * Magento 2 support is broken WIP
+      * Magento 2 support is a work in progress.
       <p>
 <?php
 
@@ -177,6 +179,8 @@ if (!empty($_POST)) {
 // check link response
     if ($apimethod == "m2_rest") { 
         $url_response = getFromHttp($url."/index.php/rest/default/schema");
+    } elseif ($apimethod == "m2_soap") {
+        $url_response = getFromHttp($url."/index.php/soap/default?wsdl_list");
     } else {
         $url_response = getFromHttp($url);
     }
@@ -218,6 +222,7 @@ if (!empty($_POST)) {
         ob_flush();
         // try to read core_magento.info through SOAP client 
         $result = $client->call($session, 'core_magento.info');
+        print_r($result);
         $msg    = $result['magento_edition'] . " edition " . $result['magento_version'];
         postMessage(INFO, "Version:", $msg);
         ob_flush();
@@ -261,30 +266,35 @@ if (!empty($_POST)) {
     } elseif ($apimethod == "m2_soap") {
         $options = array('exceptions'=>true, 'trace'=>1, 'cache_wsdl' => WSDL_CACHE_NONE);
         // get admin token
-        $client = new SoapClient($url."default?wsdl&services=integrationAdminTokenServiceV1", $options);
+        $client = new SoapClient($url."/index.php/soap/default?wsdl&services=integrationAdminTokenServiceV1", $options);
         $result = $client->integrationAdminTokenServiceV1CreateAdminAccessToken(['username'=>$user, 'password'=>$pass]);
-        print_r($result);
 	postMessage(SUCCESS, "Login successful", "Token: ".$result->result); 
+        // get version
+        $msg = file_get_contents($url."/magento_version");
+        postMessage(INFO, "Version:", $msg);
         // try to read data through SOAP
         $options['stream_context'] = stream_context_create(['http' => ['header' => sprintf("Authorization: Bearer ".$result->result)]]);
-        $client = new SoapClient($url."default?wsdl&services=storeStoreRepositoryV1", $options);
+        $client = new SoapClient($url."/index.php/soap/default?wsdl&services=storeStoreRepositoryV1", $options);
         $result = $client->storeStoreRepositoryV1GetList();
-        $stores = [];
-        foreach ($result->result->item as $key => $value) {
-            $stores[$key] = $value->code;
+        $msg = "";
+        foreach ($result->result->item as $value) {
+            $msg = $msg . $value->code . "<br>";
         }
-        print_r($stores);
-        $client = new SoapClient($url."default?wsdl&services=storeStoreConfigManagerV1", $options);
-        $result = $client->storeStoreConfigManagerV1GetStoreConfigs(['storeCodes'=>$stores]);
-        //$result = $client->storeStoreConfigManagerV1GetStoreConfigs();
-        postMessage(INFO, "eavAttributeSetRepositoryV1", print_r($result->result->item));
+        // resource list
+        $result = json_decode(file_get_contents($url."/index.php/soap/default?wsdl_list"));
+	$msg = "";
+	foreach ($result as $key => $value) {
+	    $msg = $msg . $key . "<br>";
+	}
+        postMessage(INFO, "Available resources:", $msg);
+        ob_flush();
 
     } elseif ($apimethod == "m2_rest") {
     	
         // Start of customizations
         //M2 does not require you to login to get get this information so a simple file_get_contents will work
         $response = json_decode(file_get_contents("$url/index.php/rest/default/schema"));
-        $result   = $response->info;
+	$result   = $response->info;
         $msg      = $result->title . " edition " . $result->version;
         postMessage(INFO, "Version:", $msg);
 
@@ -346,11 +356,12 @@ if (!empty($_POST)) {
             echo $e->faultstring . '<br>';
             if ($e->faultstring == 'Access denied.') {
                 echo 'The user <strong>' . $user . '</strong> cannot ';
-                foreach ($e->getTrace() as $traced) {
-                    echo '-&gt;<strong>' . $traced['function'] . '</strong>';
+                foreach ($e->getTrace() as $traced) {	
+                    $lastFunction = $traced['function'];
+                    echo '-&gt;<strong>' . $lastFunction . '</strong>';
 
                 }
-                if ($traced['funciton'] == "login") {
+                if ($lastFunction == "login") {
                     echo '<br>check username and password.';
                 } else {
                     echo "<br>Have you checked the user's roll?";
