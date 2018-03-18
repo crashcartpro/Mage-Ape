@@ -111,16 +111,16 @@ if (!empty($_POST)) {
 <html>
 <head>
 	<title>Mage Ape</title>
-	<!--<link rel="stylesheet" href="includes/bootstrap_3.3.5_min.css">-->
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css" integrity="2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
-	<script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="container">
   <div class="row">
-    <div class="col-xs-12 col-md-4 text-xs-center text-md-left pull-md-right">
+    <div class="col-xs-12 col-md-4 text-xs-center text-md-left order-md-last">
       <img src="Mage_ape1.png" style="width:100%;max-width:220px;"><br>
     </div>
     <div class="col-sx-12 col-md-7 offset-lg-1">
@@ -137,7 +137,7 @@ if (!empty($_POST)) {
       <form action="" method="POST">
         <div class="form-group">
           Method
-          <div class="btn-group" data-toggle="buttons">
+          <div class="btn-group btn-group-toggle" data-toggle="buttons">
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap1"){echo"active";}?>">
               <input type="radio" name="apimethod" value="m1_soap1" id="optionA1" <?php if($apimethod=="m1_soap1"){echo"checked";}?>>Mage 1.x SOAP V1</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap2"){echo"active";}?>">
@@ -148,21 +148,26 @@ if (!empty($_POST)) {
               <input type="radio" name="apimethod" value="m2_rest" id="optionA4" <?php if($apimethod=="m2_rest"){echo"checked";}?>>Mage 2.x REST</label>
           </div>
           <div class="input-group">
-            <div class="input-group-addon">URL:</div>
+            <div class="input-group-prepend">
+              <div class="input-group-text" id="btnGroupAddon">URL:</div>
+            </div>
             <input type="text" class="form-control" name="website" value="<?php echo $inputurl; ?>">
-            <span class="input-group-btn">
+            <div class="input-group-append">
               <button type="submit" class="btn btn-primary">Get Info</button>
-            </span>
+            </div>
           </div>
           <div class="input-group">
-            <div class="input-group-addon">Username:</div>
+            <div class="input-group-prepend">
+              <div class="input-group-text">Username:</div>
+            </div>
             <input type="text" class="form-control" name="user" value="<?php echo $user;?>">
-            <div class="input-group-addon">Password:</div>
+            <div class="input-group-prepend">
+              <div class="input-group-text">Password:</div>
+            </div>
             <input type="password" class="form-control" name="pass" value="<?php echo $pass; ?>">
           </div>
         </div>
       </form>
-      * Magento 2 support is a work in progress.
       <p>
 <?php
 
@@ -259,6 +264,7 @@ if (!empty($_POST)) {
         $result = $client->resources($session);
         foreach ($result as $a) {
             $msg = $msg . $a->title . "<br>";
+            #$msg = $msg . var_dump($a) . "<br>";
         }
         postMessage(INFO, "Available resources:", $msg);
         ob_flush();
