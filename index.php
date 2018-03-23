@@ -120,24 +120,25 @@ if (!empty($_POST)) {
 <body>
 <div class="container">
   <div class="row">
-    <div class="col-xs-12 col-md-4 text-xs-center text-md-left order-md-last">
-      <img src="Mage_ape1.png" style="width:100%;max-width:220px;"><br>
-    </div>
-    <div class="col-sx-12 col-md-7 offset-lg-1">
-      <h1><a href="http://mageape.com/">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
-      <p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
-      <p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
-      <p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
-      <p>If you specify the user and password, Mage Ape will start a session and try to pull some data from the store. If any step fails, Mage Ape dutifully prints the error message for you you see.</p>
+    <div class="col-lg-10 mx-auto row no-gutters">
+      <div class="col-xs-12 col-md-4 order-md-last text-center">
+        <img src="Mage_ape1.png" style="max-width:220px;"><br>
+      </div>
+      <div class="col oder-md-first">
+        <h1><a href="http://mageape.com/">Mage Ape</a><small> Magento&nbspAPI&nbsptest</small></h1>
+        <p>Magento is a highly extensable e-ecomerce framework with many moving parts. Just one such part is the SOAP or XML-RPC based API interface. Which allows 3rd party programs to access store content.</p>
+        <p>However, sometimes things fail. Mage Ape wants to help you troubleshoot.</p>
+        <p>Start by entering your domain. <code>example.com</code> Mage Ape will assume defaults and test unauthenticated requests. You can also specify the full path to the WSDL. <code>www.example.com/index.php/api/v2_soap/?wsdl</code></p>
+        <p>If you specify the user and password, Mage Ape will start a session and try to pull some data from the store. If any step fails, Mage Ape dutifully prints the error message for you you see.</p>
+      </div>
     </div>
   </div>
   <div class="row">
-    <div class="col-xs-12 col-lg-8 offset-lg-2">
-      <p>Try: http://www.theath.simple-helix.net/index.php/api/v2_soap/?wsdl</p>
+    <div class="col-lg-10 mx-auto">
       <form action="" method="POST">
-        <div class="form-group">
+        <p><div class="form-group">
           Method
-          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+          <div class="btn-group btn-group-toggle flex-column flex-md-row" data-toggle="buttons">
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap1"){echo"active";}?>">
               <input type="radio" name="apimethod" value="m1_soap1" id="optionA1" <?php if($apimethod=="m1_soap1"){echo"checked";}?>>Mage 1.x SOAP V1</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap2"){echo"active";}?>">
@@ -146,7 +147,7 @@ if (!empty($_POST)) {
               <input type="radio" name="apimethod" value="m2_soap" id="optionA3" <?php if($apimethod=="m2_soap"){echo"checked";}?>>Mage 2.x SOAP</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m2_rest"){echo"active";}?>">
               <input type="radio" name="apimethod" value="m2_rest" id="optionA4" <?php if($apimethod=="m2_rest"){echo"checked";}?>>Mage 2.x REST</label>
-          </div>
+          </div></p>
           <div class="input-group">
             <div class="input-group-prepend">
               <div class="input-group-text" id="btnGroupAddon">URL:</div>
@@ -173,7 +174,7 @@ if (!empty($_POST)) {
 
 if (!empty($_POST)) {
 // loading gif
-    echo '<img id="loadingGif" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
+    echo '<img id="loader" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
     ob_flush();
     $starttime = microtime(true);
 // Filter URL.
@@ -388,5 +389,5 @@ if (!empty($_POST)) {
   </div>
 </div>
 
-<script>document.getElementById('loadingGif').style.display = 'none';</script>
+<script>document.getElementById('loader').style.display = 'none';</script>
 </body></html>
