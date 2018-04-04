@@ -1,9 +1,9 @@
 <?php
 
-require '/var/www/Mage-Ape/kint.php';
+#require '/var/www/Mage-Ape/kint.php';
 #########################
 #  Mage-Ape
-#    v1.0
+#    v1.2
 # by CrashCart
 #
 # Mage-Ape is an atempt at a tool for testing and diagnosing errors with Magento API calls
@@ -136,7 +136,7 @@ if (!empty($_POST)) {
   <div class="row">
     <div class="col-lg-10 mx-auto">
       <form action="" method="POST">
-        <p><div class="form-group">
+        <div class="form-group">
           Method
           <div class="btn-group btn-group-toggle flex-column flex-md-row" data-toggle="buttons">
             <label class="btn btn-outline-primary <?php if($apimethod=="m1_soap1"){echo"active";}?>">
@@ -147,7 +147,7 @@ if (!empty($_POST)) {
               <input type="radio" name="apimethod" value="m2_soap" id="optionA3" <?php if($apimethod=="m2_soap"){echo"checked";}?>>Mage 2.x SOAP</label>
             <label class="btn btn-outline-primary <?php if($apimethod=="m2_rest"){echo"active";}?>">
               <input type="radio" name="apimethod" value="m2_rest" id="optionA4" <?php if($apimethod=="m2_rest"){echo"checked";}?>>Mage 2.x REST</label>
-          </div></p>
+          </div><p></p>
           <div class="input-group">
             <div class="input-group-prepend">
               <div class="input-group-text" id="btnGroupAddon">URL:</div>
