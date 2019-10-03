@@ -170,11 +170,11 @@ if (!empty($_POST)) {
         </div>
       </form>
       <p>
+     <img id="loader" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">
 <?php
 
 if (!empty($_POST)) {
 // loading gif
-    echo '<img id="loader" style="position:absolute;bottom:-20px;left:46%;" src="ape-loader2.gif">';
     ob_flush();
     $starttime = microtime(true);
 // Filter URL.
